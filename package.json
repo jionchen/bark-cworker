@@ -1,0 +1,15 @@
+{
+  "name": "bark-cworker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "cf-typegen": "wrangler types",
+    "bootstrap-register-code": "node scripts/bootstrap-register-code.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.5",
+    "wrangler": "^4.13.0"
+  }
+}

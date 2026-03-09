@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS auth_cache (
+  id INTEGER PRIMARY KEY,
+  token TEXT NOT NULL,
+  issued_at INTEGER NOT NULL
+);
+

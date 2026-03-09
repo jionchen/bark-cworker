@@ -1,0 +1,30 @@
+{
+  "name": "bark-cworker",
+  "main": "src/index.js",
+  "compatibility_date": "2025-03-01",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "observability": {
+    "enabled": true
+  },
+  "d1_databases": [
+    {
+      "binding": "database",
+      "database_name": "bark-cworker",
+      "database_id": "<unique-ID-for-your-database>"
+    }
+  ],
+  "vars": {
+    "ALLOW_NEW_DEVICE": "true",
+    "ALLOW_QUERY_NUMS": "true",
+    "ROOT_PATH": "/",
+    "REGISTER_REQUIRE_BASIC_AUTH": "true",
+    "REGISTER_ALLOW_REBIND": "false",
+    "MAX_BATCH_PUSH": "20",
+    "APNS_TEAM_ID": "5U8LBRXG3A",
+    "APNS_KEY_ID": "LH4T9V5U4R",
+    "APNS_TOPIC": "me.fin.bark"
+  }
+}
+
