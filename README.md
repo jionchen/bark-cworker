@@ -1,5 +1,7 @@
 # Bark CWorker
 
+English | [中文文档](README.zh.md)
+
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/jionchen/bark-cworker)
 
 Cloudflare Workers + D1 implementation of Bark for personal use. This project is based on the Bark protocol shape used by [`Finb/bark-server`](https://github.com/Finb/bark-server) and the Cloudflare deployment pattern from [`cwxiaos/bark-worker`](https://github.com/cwxiaos/bark-worker), with extra hardening for long-lived personal deployments.
