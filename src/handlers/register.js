@@ -19,6 +19,10 @@ function resolveRegisterFields(params) {
 }
 
 export async function handleRegister({ request, config, db }) {
+  if (request.method !== "POST") {
+    return errorResponse(405, "Method Not Allowed");
+  }
+
   const params = await readRequestParams(request);
   const access = await verifyRegisterAccess({ request, config, db, params });
 
@@ -52,11 +56,11 @@ export async function handleRegister({ request, config, db }) {
     return errorResponse(409, "device key already exists; explicit rebind required");
   }
 
-  await db.saveDevice({
+  await db.registerDevice({
     deviceKey,
-    deviceToken
+    deviceToken,
+    codeId: access.record.id
   });
-  await db.incrementRegistrationCodeUse(access.record.id);
 
   return successResponse({
     key: deviceKey,
@@ -65,6 +69,10 @@ export async function handleRegister({ request, config, db }) {
 }
 
 export async function handleRegisterCheck({ request, config, db, deviceKey }) {
+  if (request.method !== "GET") {
+    return errorResponse(405, "Method Not Allowed");
+  }
+
   if (!validateBasicAuth(request, config.basicAuth)) {
     return errorResponse(401, "Unauthorized");
   }

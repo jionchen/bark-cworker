@@ -128,6 +128,28 @@ export class Database {
       .run();
   }
 
+  async registerDevice({ deviceKey, deviceToken, codeId, now = getTimestamp() }) {
+    const saveStmt = this.binding
+      .prepare(
+        `INSERT INTO devices (device_key, device_token, status, created_at, updated_at, last_registered_at)
+         VALUES (?, ?, 'active', ?, ?, ?)
+         ON CONFLICT(device_key) DO UPDATE SET
+           device_token = excluded.device_token,
+           status = excluded.status,
+           updated_at = excluded.updated_at,
+           last_registered_at = excluded.last_registered_at`
+      )
+      .bind(deviceKey, deviceToken, now, now, now);
+
+    const incrementStmt = this.binding
+      .prepare(
+        "UPDATE registration_codes SET used_count = used_count + 1, updated_at = ? WHERE id = ?"
+      )
+      .bind(now, codeId);
+
+    return this.binding.batch([saveStmt, incrementStmt]);
+  }
+
   async getAuthCache() {
     return this.binding
       .prepare("SELECT token, issued_at FROM auth_cache WHERE id = 1")

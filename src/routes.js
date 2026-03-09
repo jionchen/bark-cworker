@@ -66,7 +66,7 @@ export async function routeRequest({ request, env, config }) {
     return handleRegisterCheck({ request, config, db: getDb(), deviceKey });
   }
 
-  if (routePath === "/push" || /^\/[^/]+(?:\/[^/]+){0,3}$/.test(routePath)) {
+  if (routePath === "/push" || /^\/[a-zA-Z0-9]{10,}(?:\/[^/]+){0,3}$/.test(routePath)) {
     return handlePush({ request, config, db: getDb(), routePath });
   }
 

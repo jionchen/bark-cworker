@@ -79,11 +79,13 @@ export async function pushToApns({
     Object.entries({
       "apns-topic": config.apnsTopic,
       "apns-collapse-id": headers["apns-collapse-id"],
-      "apns-expiration": String(headers["apns-expiration"]),
+      "apns-expiration": headers["apns-expiration"],
       "apns-push-type": headers["apns-push-type"],
       authorization: `bearer ${authToken}`,
       "content-type": "application/json"
-    }).filter(([, value]) => value !== undefined)
+    })
+      .filter(([, value]) => value !== undefined && value !== null)
+      .map(([key, value]) => [key, String(value)])
   );
 
   return fetchImpl(`https://api.push.apple.com/3/device/${deviceToken}`, {

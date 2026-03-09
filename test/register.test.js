@@ -30,10 +30,9 @@ test("handleRegister creates a device key when one is not supplied", async () =>
       async getDeviceByKey() {
         return null;
       },
-      async saveDevice(device) {
+      async registerDevice(device) {
         saved.push(device);
-      },
-      async incrementRegistrationCodeUse() {}
+      }
     }
   });
 

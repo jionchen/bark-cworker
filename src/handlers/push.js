@@ -83,6 +83,14 @@ export async function parsePushRequest(request, routePath) {
   };
 }
 
+const EXCLUDED_PAYLOAD_KEYS = new Set([
+  "device_key", "device_keys", "device_token", "devicetoken",
+  "title", "subtitle", "body",
+  "register_code", "registercode", "code",
+  "rebind", "confirm_rebind",
+  "key"
+]);
+
 function buildApnsRequest(parameters) {
   let sound = parameters.sound || "1107";
   if (parameters.sound && !String(sound).endsWith(".caf")) {
@@ -112,7 +120,7 @@ function buildApnsRequest(parameters) {
   };
 
   for (const [key, value] of Object.entries(parameters)) {
-    if (value !== undefined && key !== "device_key" && key !== "title" && key !== "subtitle" && key !== "body") {
+    if (value !== undefined && !EXCLUDED_PAYLOAD_KEYS.has(key.toLowerCase())) {
       payload[key.toLowerCase()] = value;
     }
   }
@@ -165,6 +173,10 @@ async function pushOne({ db, config, apns, parameters }) {
 }
 
 export async function handlePush({ request, config, db, routePath, apns = { push: pushToApns } }) {
+  if (request.method !== "POST" && request.method !== "GET") {
+    return errorResponse(405, "Method Not Allowed");
+  }
+
   if (!validateBasicAuth(request, config.basicAuth)) {
     return errorResponse(401, "Unauthorized");
   }
