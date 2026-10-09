@@ -95,13 +95,15 @@ npm run bootstrap-register-code -- my-register-code default 10 "" my-salt
 - `POST /register`
   - 支持 JSON 和旧版 query 参数风格
   - 必须提供注册码
+
+- `POST /push`
+  - 支持 JSON 和 `device_keys`
+
 以下接口仅在 `ALERT_RECEIVER_MODE=false` 时开放：
 
 - `GET /register/:device_key`
   - 用于检查 key 是否存在
   - 需要 `BASIC_AUTH`
-- `POST /push`
-  - 支持 JSON 和 `device_keys`
 - 兼容旧版路径推送：
   - `/:device_key`
   - `/:device_key/:body`

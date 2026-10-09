@@ -95,13 +95,15 @@ Alert receiver mode allows only the two POST endpoints. Other paths return 404; 
 - `POST /register`
   - accepts JSON and legacy query-style fields
   - requires a registration code
+
+- `POST /push`
+  - accepts JSON and supports `device_keys`
+
 The following routes require `ALERT_RECEIVER_MODE=false`:
 
 - `GET /register/:device_key`
   - checks whether a key exists
   - requires `BASIC_AUTH`
-- `POST /push`
-  - accepts JSON and supports `device_keys`
 - Legacy push paths are supported:
   - `/:device_key`
   - `/:device_key/:body`
