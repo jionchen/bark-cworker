@@ -13,8 +13,7 @@ function resolveRegisterFields(params) {
     deviceKey: sanitizeDeviceKey(params.device_key || params.key || ""),
     deviceToken: sanitizeDeviceToken(
       params.device_token || params.devicetoken || ""
-    ),
-    rebind: String(params.rebind || params.confirm_rebind || "") === "1"
+    )
   };
 }
 
@@ -30,7 +29,7 @@ export async function handleRegister({ request, config, db }) {
     return errorResponse(access.status, access.message);
   }
 
-  const { deviceKey: requestedKey, deviceToken, rebind } = resolveRegisterFields(params);
+  const { deviceKey: requestedKey, deviceToken } = resolveRegisterFields(params);
 
   if (!deviceToken) {
     return errorResponse(400, "device token is empty");
@@ -47,20 +46,29 @@ export async function handleRegister({ request, config, db }) {
   const deviceKey = requestedKey || (await createDeviceKey());
   const existing = await db.getDeviceByKey(deviceKey);
 
+  if (!existing && !config.allowNewDevice) {
+    return errorResponse(403, "device registration disabled");
+  }
+
   if (
     existing &&
     existing.device_token !== deviceToken &&
-    !config.registerAllowRebind &&
-    !rebind
+    !config.registerAllowRebind
   ) {
-    return errorResponse(409, "device key already exists; explicit rebind required");
+    return errorResponse(409, "device key already exists; rebinding disabled");
   }
 
-  await db.registerDevice({
+  const registered = await db.registerDevice({
     deviceKey,
     deviceToken,
-    codeId: access.record.id
+    codeId: access.record.id,
+    allowNewDevice: config.allowNewDevice,
+    allowRebind: config.registerAllowRebind
   });
+
+  if (!registered) {
+    return errorResponse(409, "registration rejected; code or device state changed");
+  }
 
   return successResponse({
     key: deviceKey,

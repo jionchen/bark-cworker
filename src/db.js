@@ -128,26 +128,44 @@ export class Database {
       .run();
   }
 
-  async registerDevice({ deviceKey, deviceToken, codeId, now = getTimestamp() }) {
+  async registerDevice({
+    deviceKey, deviceToken, codeId,
+    allowNewDevice = true, allowRebind = false, now = getTimestamp()
+  }) {
+    // Recheck every access constraint inside the transaction, since reads made
+    // by the handler can be stale when another registration wins the race.
     const saveStmt = this.binding
       .prepare(
         `INSERT INTO devices (device_key, device_token, status, created_at, updated_at, last_registered_at)
-         VALUES (?, ?, 'active', ?, ?, ?)
+         SELECT ?, ?, 'active', ?, ?, ?
+         WHERE EXISTS (
+           SELECT 1 FROM registration_codes
+           WHERE id = ? AND status = 'active'
+             AND (expires_at IS NULL OR expires_at = 0 OR expires_at >= ?)
+             AND (max_uses IS NULL OR max_uses < 0 OR used_count < max_uses)
+         )
+         AND (? = 1 OR EXISTS (SELECT 1 FROM devices WHERE device_key = ?))
          ON CONFLICT(device_key) DO UPDATE SET
            device_token = excluded.device_token,
            status = excluded.status,
            updated_at = excluded.updated_at,
-           last_registered_at = excluded.last_registered_at`
+           last_registered_at = excluded.last_registered_at
+         WHERE ? = 1 OR devices.device_token = excluded.device_token`
       )
-      .bind(deviceKey, deviceToken, now, now, now);
+      .bind(deviceKey, deviceToken, now, now, now, codeId, now,
+        allowNewDevice ? 1 : 0, deviceKey, allowRebind ? 1 : 0);
 
+    // changes() refers to the immediately preceding device statement. A denied
+    // insert or rebind must not consume a code. D1 batch rolls back on failure.
     const incrementStmt = this.binding
       .prepare(
-        "UPDATE registration_codes SET used_count = used_count + 1, updated_at = ? WHERE id = ?"
+        `UPDATE registration_codes SET used_count = used_count + 1, updated_at = ?
+         WHERE id = ? AND changes() = 1`
       )
       .bind(now, codeId);
 
-    return this.binding.batch([saveStmt, incrementStmt]);
+    const results = await this.binding.batch([saveStmt, incrementStmt]);
+    return results[0].meta.changes === 1 && results[1].meta.changes === 1;
   }
 
   async getAuthCache() {

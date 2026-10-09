@@ -22,7 +22,7 @@ Cloudflare Workers + D1 implementation of Bark for personal use. This project is
 1. Click the deploy button above.
 2. Let Cloudflare create the Worker and D1 database.
 3. After deployment, open the Worker settings and confirm the D1 binding name is `database`.
-4. Configure environment variables and secrets if you want to override the defaults.
+4. Set the required `BASIC_AUTH` secret (`username:password`), then configure other variables and secrets as needed. Without credentials, push, register-check, and info return 401.
 
 ## Required Variables
 
@@ -38,9 +38,12 @@ These values are already declared in `wrangler.json` for Cloudflare deployment:
 - `APNS_KEY_ID`
 - `APNS_TOPIC`
 
+Required secret:
+
+- `BASIC_AUTH`: `username:password`, protecting push, info, register-check, and registration when its default auth requirement is enabled.
+
 Optional variables:
 
-- `BASIC_AUTH`
 - `REGISTER_CODE_SALT`
 - `APNS_PRIVATE_KEY`
 
@@ -78,7 +81,7 @@ npm run bootstrap-register-code -- my-register-code default 10 "" my-salt
 
 - Set `BASIC_AUTH` before exposing the Worker publicly.
 - Keep `REGISTER_REQUIRE_BASIC_AUTH=true`.
-- Set `REGISTER_CODE_SALT` so leaked registration codes are not reusable elsewhere.
+- Set `REGISTER_CODE_SALT` to make stored code hashes harder to guess; a salt does not prevent use of a leaked plaintext registration code.
 - Leave `REGISTER_ALLOW_REBIND=false` unless you explicitly need key takeover behavior.
 - Keep `MAX_BATCH_PUSH` small.
 
@@ -97,6 +100,17 @@ npm run bootstrap-register-code -- my-register-code default 10 "" my-salt
   - `/:device_key/:body`
   - `/:device_key/:title/:body`
   - `/:device_key/:title/:subtitle/:body`
+
+## Security Behavior
+
+- Missing or whitespace-only `BASIC_AUTH` denies protected requests. `ping` and `healthz` remain available.
+- `ALLOW_QUERY_NUMS` defaults to `false`; info omits the device count.
+- Only server-side `REGISTER_ALLOW_REBIND=true` permits changing an existing key's token. Client `rebind=1` and `confirm_rebind=1` do not override this restriction.
+- `ALLOW_NEW_DEVICE=false` rejects both generated keys and client-supplied keys that do not exist. Existing devices may still register subject to the rebind policy.
+- The registration transaction rechecks code status, expiry, quota, and device restrictions at write time. Only a successful device write consumes quota; transaction failures roll back. Concurrent state changes return 409.
+- Internal exceptions return a generic `500 Internal Server Error` without exposing exception details.
+
+No new database migration is required. Existing Workers with an explicit `ALLOW_QUERY_NUMS=true` setting need that value changed to `false`. Tests cover concurrency, write-time guards, and rollback using local D1. Production D1, stock Bark iOS registration compatibility, and actual APNs delivery still require deployment verification. Distributed rate limiting is outside this patch.
 
 ## Local Development
 

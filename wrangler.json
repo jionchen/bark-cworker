@@ -17,7 +17,7 @@
   ],
   "vars": {
     "ALLOW_NEW_DEVICE": "true",
-    "ALLOW_QUERY_NUMS": "true",
+    "ALLOW_QUERY_NUMS": "false",
     "ROOT_PATH": "/",
     "REGISTER_REQUIRE_BASIC_AUTH": "true",
     "REGISTER_ALLOW_REBIND": "false",

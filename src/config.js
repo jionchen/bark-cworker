@@ -2,7 +2,7 @@ import { normalizeRootPath, parseBoolean, parseInteger } from "./utils.js";
 
 const DEFAULTS = {
   allowNewDevice: true,
-  allowQueryNums: true,
+  allowQueryNums: false,
   rootPath: "/",
   registerRequireBasicAuth: true,
   registerAllowRebind: false,

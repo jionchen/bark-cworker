@@ -21,8 +21,8 @@ function encodeBase64(value) {
 }
 
 export function validateBasicAuth(request, basicAuth) {
-  if (!basicAuth) {
-    return true;
+  if (typeof basicAuth !== "string" || !basicAuth.trim()) {
+    return false;
   }
 
   const authHeader = request.headers.get("authorization");

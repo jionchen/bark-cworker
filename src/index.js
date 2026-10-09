@@ -6,9 +6,9 @@ const worker = {
   async fetch(request, env) {
     try {
       const config = loadConfig(env);
-      return routeRequest({ request, env, config });
-    } catch (error) {
-      return errorResponse(500, error.message);
+      return await routeRequest({ request, env, config });
+    } catch {
+      return errorResponse(500, "Internal Server Error");
     }
   }
 };

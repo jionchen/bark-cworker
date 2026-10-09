@@ -10,6 +10,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.3.5",
+    "miniflare": "4.20260301.1",
     "wrangler": "^4.13.0"
   }
 }
