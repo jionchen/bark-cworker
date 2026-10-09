@@ -12,7 +12,7 @@
     {
       "binding": "database",
       "database_name": "bark-cworker",
-      "database_id": "<unique-ID-for-your-database>"
+      "database_id": "5aa3dabb-de9a-4003-9669-bf4f3a149530"
     }
   ],
   "vars": {
@@ -27,4 +27,3 @@
     "APNS_TOPIC": "me.fin.bark"
   }
 }
-
