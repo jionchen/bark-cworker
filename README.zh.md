@@ -8,6 +8,8 @@
 
 ## 功能
 
+默认启用告警接收模式，公网仅开放需要鉴权的 `POST /push` 和 `POST /register`。下列其他兼容接口仅在 `ALERT_RECEIVER_MODE=false` 时开放。
+
 - 只支持 D1 部署
 - 支持 `register`、`register/:device_key`、`push`、`ping`、`healthz`、`info`
 - 兼容 Bark V1 风格路径推送
@@ -28,6 +30,7 @@
 
 这些变量已经在 `wrangler.json` 中声明：
 
+- `ALERT_RECEIVER_MODE`（默认 `true`）
 - `ALLOW_NEW_DEVICE`
 - `ALLOW_QUERY_NUMS`
 - `ROOT_PATH`
@@ -87,9 +90,13 @@ npm run bootstrap-register-code -- my-register-code default 10 "" my-salt
 
 ## API 说明
 
+告警接收模式仅允许以下两个 POST 接口；其他路径返回 404，非 POST 方法返回 405。
+
 - `POST /register`
   - 支持 JSON 和旧版 query 参数风格
   - 必须提供注册码
+以下接口仅在 `ALERT_RECEIVER_MODE=false` 时开放：
+
 - `GET /register/:device_key`
   - 用于检查 key 是否存在
   - 需要 `BASIC_AUTH`
@@ -103,7 +110,8 @@ npm run bootstrap-register-code -- my-register-code default 10 "" my-salt
 
 ## 安全行为
 
-- 未配置或配置空白 `BASIC_AUTH` 时，受保护接口默认拒绝访问；`ping` 和 `healthz` 保持可用。
+- 未配置或配置空白 `BASIC_AUTH` 时，受保护接口默认拒绝访问。
+- 默认只开放 `POST /push` 与 `POST /register`；`/`、`/ping`、`/healthz`、`/info`、设备检查和旧版 GET/路径推送关闭。兼容模式 `ALERT_RECEIVER_MODE=false` 会重新开放原有路由。
 - `ALLOW_QUERY_NUMS` 默认为 `false`，info 不包含设备数量。
 - 只有服务端 `REGISTER_ALLOW_REBIND=true` 才允许已有 key 更换 token；客户端 `rebind=1` 和 `confirm_rebind=1` 不会放开限制。
 - `ALLOW_NEW_DEVICE=false` 同时禁止自动生成 key 和客户端指定不存在的 key；已有设备仍可按重绑规则重新注册。
@@ -120,3 +128,9 @@ npm test
 npm run cf-typegen
 ```
 
+
+## 当前生产域名
+
+本仓库的生产配置使用 `https://bark.alertfusion.top`，关闭 `workers.dev` 和预览 URL。注册地址为 `/register`，告警推送地址为 `/push`，密码、注册码和已有设备 key 继续有效。注册仍要求 Basic Auth 和注册码，仍禁止客户端强制重绑。
+
+如部署到自己的账户，修改 `wrangler.json` 中的 D1 ID 与 `routes` 自定义域名。`workers_dev=false` 和 `preview_urls=false` 应保留，以免额外访问入口重新开启。

@@ -33,6 +33,18 @@ export async function routeRequest({ request, env, config }) {
     return errorResponse(404, `Cannot ${request.method} ${url.pathname}`);
   }
 
+  // Keep every other route closed, even to authenticated clients.
+  if (config.alertReceiverMode) {
+    if (routePath !== "/push" && routePath !== "/register") {
+      return errorResponse(404, "Not Found");
+    }
+    if (request.method !== "POST") {
+      const response = errorResponse(405, "Method Not Allowed");
+      response.headers.set("Allow", "POST");
+      return response;
+    }
+  }
+
   let db;
   const getDb = () => {
     if (!db) {

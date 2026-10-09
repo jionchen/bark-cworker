@@ -10,7 +10,7 @@ for (const path of ["/push", "/abcdefghij/body", "/info", "/register/abcdefghij"
   test(`missing BASIC_AUTH denies ${path} before database access`, async () => {
     const response = await worker.fetch(new Request(`https://example.com${path}`, {
       method: path === "/push" ? "POST" : "GET", headers: auth
-    }), { database: { prepare() { throw new Error("unexpected query"); } } });
+    }), { ALERT_RECEIVER_MODE: "false", database: { prepare() { throw new Error("unexpected query"); } } });
     assert.equal(response.status, 401);
   });
 }
@@ -22,7 +22,7 @@ test("device count is private by default", () => {
 for (const asyncFailure of [false, true]) {
   test(`worker hides ${asyncFailure ? "asynchronous" : "synchronous"} internal errors`, async () => {
     const response = await worker.fetch(new Request("https://example.com/info", { headers: auth }), {
-      BASIC_AUTH: "test:password", ALLOW_QUERY_NUMS: "true",
+      ALERT_RECEIVER_MODE: "false", BASIC_AUTH: "test:password", ALLOW_QUERY_NUMS: "true",
       database: { prepare() {
         if (!asyncFailure) throw new Error("sensitive database details");
         return { first: async () => { throw new Error("sensitive database details"); } };
@@ -79,7 +79,7 @@ for (const basicAuth of [undefined, "", "   "]) {
 
 test("authenticated info omits device count by default", async () => {
   const response = await worker.fetch(new Request("https://example.com/info", { headers: auth }), {
-    BASIC_AUTH: "test:password", database: { prepare() { throw new Error("count must not be queried"); } }
+    ALERT_RECEIVER_MODE: "false", BASIC_AUTH: "test:password", database: { prepare() { throw new Error("count must not be queried"); } }
   });
   assert.equal(response.status, 200);
   assert.equal(Object.hasOwn(await response.json(), "devices"), false);

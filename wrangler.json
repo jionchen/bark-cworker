@@ -24,6 +24,15 @@
     "MAX_BATCH_PUSH": "20",
     "APNS_TEAM_ID": "5U8LBRXG3A",
     "APNS_KEY_ID": "LH4T9V5U4R",
-    "APNS_TOPIC": "me.fin.bark"
-  }
+    "APNS_TOPIC": "me.fin.bark",
+    "ALERT_RECEIVER_MODE": "true"
+  },
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [
+    {
+      "pattern": "bark.alertfusion.top",
+      "custom_domain": true
+    }
+  ]
 }

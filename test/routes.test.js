@@ -22,7 +22,7 @@ test("worker rejects unauthenticated push requests", async () => {
 test("worker responds to ping without auth", async () => {
   const response = await worker.fetch(
     new Request("https://example.com/ping"),
-    {}
+    { ALERT_RECEIVER_MODE: "false" }
   );
 
   assert.equal(response.status, 200);

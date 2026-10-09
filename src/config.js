@@ -1,6 +1,7 @@
 import { normalizeRootPath, parseBoolean, parseInteger } from "./utils.js";
 
 const DEFAULTS = {
+  alertReceiverMode: true,
   allowNewDevice: true,
   allowQueryNums: false,
   rootPath: "/",
@@ -14,6 +15,7 @@ const DEFAULTS = {
 
 export function loadConfig(env = {}) {
   const config = {
+    alertReceiverMode: parseBoolean(env.ALERT_RECEIVER_MODE, DEFAULTS.alertReceiverMode),
     allowNewDevice: parseBoolean(env.ALLOW_NEW_DEVICE, DEFAULTS.allowNewDevice),
     allowQueryNums: parseBoolean(env.ALLOW_QUERY_NUMS, DEFAULTS.allowQueryNums),
     rootPath: normalizeRootPath(env.ROOT_PATH || DEFAULTS.rootPath),

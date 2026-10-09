@@ -74,3 +74,19 @@ test("D1 missing registration code cannot write a device", async (t) => {
   assert.equal(await db.registerDevice({ deviceKey: "device", deviceToken: "token", codeId: 999 }), false);
   assert.equal(await db.countDevices(), 0);
 });
+
+test("default alert receiver routes allow authenticated device registration in D1", async (t) => {
+  const { binding, db } = await setup(t);
+  const { hashRegistrationCode } = await import("../src/auth.js");
+  const { default: worker } = await import("../src/index.js");
+  const hash = await hashRegistrationCode("registrationtestcode");
+  await binding.prepare("UPDATE registration_codes SET code_hash = ? WHERE id = 1").bind(hash).run();
+  const response = await worker.fetch(new Request("https://example.com/register", {
+    method: "POST",
+    headers: { "content-type": "application/json", authorization: `Basic ${Buffer.from("test:password").toString("base64")}` },
+    body: JSON.stringify({ device_token: "testtoken", register_code: "registrationtestcode" })
+  }), { BASIC_AUTH: "test:password", database: binding });
+  assert.equal(response.status, 200);
+  const key = (await response.json()).data.device_key;
+  assert.equal(await db.getDeviceTokenByKey(key), "testtoken");
+});

@@ -8,6 +8,8 @@ Cloudflare Workers + D1 implementation of Bark for personal use. This project is
 
 ## Features
 
+Alert receiver mode is enabled by default. Only authenticated `POST /push` and `POST /register` are public. Other compatibility routes listed below require `ALERT_RECEIVER_MODE=false`.
+
 - D1-only deployment
 - `register`, `register/:device_key`, `push`, `ping`, `healthz`, `info`
 - V1-style path push compatibility
@@ -28,6 +30,7 @@ Cloudflare Workers + D1 implementation of Bark for personal use. This project is
 
 These values are already declared in `wrangler.json` for Cloudflare deployment:
 
+- `ALERT_RECEIVER_MODE` (default `true`)
 - `ALLOW_NEW_DEVICE`
 - `ALLOW_QUERY_NUMS`
 - `ROOT_PATH`
@@ -87,9 +90,13 @@ npm run bootstrap-register-code -- my-register-code default 10 "" my-salt
 
 ## API Notes
 
+Alert receiver mode allows only the two POST endpoints. Other paths return 404; other methods return 405.
+
 - `POST /register`
   - accepts JSON and legacy query-style fields
   - requires a registration code
+The following routes require `ALERT_RECEIVER_MODE=false`:
+
 - `GET /register/:device_key`
   - checks whether a key exists
   - requires `BASIC_AUTH`
@@ -103,7 +110,8 @@ npm run bootstrap-register-code -- my-register-code default 10 "" my-salt
 
 ## Security Behavior
 
-- Missing or whitespace-only `BASIC_AUTH` denies protected requests. `ping` and `healthz` remain available.
+- Missing or whitespace-only `BASIC_AUTH` denies protected requests.
+- By default only `POST /push` and `POST /register` are exposed. Root, ping, healthz, info, register-check, and legacy GET/path pushes are closed. `ALERT_RECEIVER_MODE=false` restores the compatibility routes.
 - `ALLOW_QUERY_NUMS` defaults to `false`; info omits the device count.
 - Only server-side `REGISTER_ALLOW_REBIND=true` permits changing an existing key's token. Client `rebind=1` and `confirm_rebind=1` do not override this restriction.
 - `ALLOW_NEW_DEVICE=false` rejects both generated keys and client-supplied keys that do not exist. Existing devices may still register subject to the rebind policy.
@@ -119,3 +127,9 @@ npm install
 npm test
 npm run cf-typegen
 ```
+
+## Current Production Domain
+
+The production configuration uses `https://bark.alertfusion.top` with `workers.dev` and preview URLs disabled. Register through `/register` and send alerts through `/push`. Existing credentials, registration codes, and device keys remain valid. Registration still requires Basic Auth and a registration code, and client flags cannot override the rebind policy.
+
+For another account, replace the D1 ID and custom domain in `wrangler.json`. Keep `workers_dev=false` and `preview_urls=false` to avoid reopening alternate entry points.
